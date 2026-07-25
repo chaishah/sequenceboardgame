@@ -1,0 +1,144 @@
+/* Hand Cards & Deck Styles */
+
+.hand-cards-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 6px;
+}
+
+.playing-card {
+  width: 72px;
+  height: 105px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.playing-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+}
+
+.playing-card.selected {
+  transform: translateY(-16px);
+  border: 2px solid #6366f1;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.8);
+}
+
+/* Card Suit Colors */
+.playing-card.color-red {
+  color: #dc2626;
+}
+.playing-card.color-black {
+  color: #0f172a;
+}
+
+.card-corner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.card-corner.top-left {
+  align-self: flex-start;
+}
+
+.card-corner.bottom-right {
+  align-self: flex-end;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.card-suit {
+  font-size: 0.75rem;
+}
+
+.card-center-suit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  opacity: 0.85;
+}
+
+/* Special Badges */
+.card-badge {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.wild-badge {
+  background: #f59e0b;
+  color: #78350f;
+}
+
+.remove-badge {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.dead-badge {
+  background: #475569;
+  color: #ffffff;
+}
+
+/* Dead Card Overlay */
+.playing-card.dead-card {
+  opacity: 0.75;
+  background: #e2e8f0;
+}
+
+.btn-swap-dead {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  border: none;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.btn-swap-dead:hover {
+  background: #dc2626;
+}
+
+@media (max-width: 600px) {
+  .playing-card {
+    width: 58px;
+    height: 85px;
+    padding: 3px;
+  }
+  .card-rank { font-size: 0.75rem; }
+  .card-suit { font-size: 0.65rem; }
+  .card-center-suit { font-size: 1.3rem; }
+}
