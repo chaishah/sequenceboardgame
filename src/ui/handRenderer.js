@@ -1,5 +1,5 @@
 /**
- * Player Hand Cards Renderer (Phase 2 Enhanced)
+ * Player Hand Cards Renderer (Visual King, Queen, Jack & Ace Illustrations)
  */
 
 import { parseCard } from '../game/constants.js';
@@ -12,11 +12,20 @@ export class HandRenderer {
     this.isCardDeadCheck = isCardDeadCheck;
     this.onSortHand = onSortHand || (() => {});
     this.hoveredCardCode = null;
-    this.sortMode = 'none'; // 'suit', 'rank', 'none'
   }
 
   setHoveredCard(cardCode) {
     this.hoveredCardCode = cardCode;
+  }
+
+  getRankIcon(rank) {
+    switch (rank) {
+      case 'K': return '👑'; // King Crown
+      case 'Q': return '👸'; // Queen Tiara
+      case 'J': return '🗡️'; // Jack Sword/Knight
+      case 'A': return '⚜️'; // Ace Crest
+      default: return null;
+    }
   }
 
   render(state, localPlayerId = 1) {
@@ -31,7 +40,6 @@ export class HandRenderer {
     const wrapperEl = document.createElement('div');
     wrapperEl.className = 'hand-panel-inner';
 
-    // Header controls: Hand Title & Sort Button
     const headerEl = document.createElement('div');
     headerEl.className = 'hand-header-bar';
     headerEl.innerHTML = `
@@ -50,7 +58,6 @@ export class HandRenderer {
       this.onSortHand();
     });
 
-    // Hand Cards List
     const handCardsEl = document.createElement('div');
     handCardsEl.className = 'hand-cards-wrapper';
 
@@ -67,6 +74,8 @@ export class HandRenderer {
       if (parsed.isJack) cardEl.classList.add('jack-card');
       if (isHoverMatch) cardEl.classList.add('hover-match');
 
+      const rankIcon = this.getRankIcon(parsed.rank);
+
       let badgeHtml = '';
       if (parsed.isTwoEyed) {
         badgeHtml = `<div class="card-badge wild-badge">WILD ★</div>`;
@@ -76,13 +85,20 @@ export class HandRenderer {
         badgeHtml = `<div class="card-badge dead-badge">DEAD ☠</div>`;
       }
 
+      const centerArtHtml = rankIcon
+        ? `<div class="card-center-illustration">
+             <span class="center-rank-icon">${rankIcon}</span>
+             <span class="center-suit-symbol">${parsed.suitSymbol}</span>
+           </div>`
+        : `<div class="card-center-suit">${parsed.suitSymbol}</div>`;
+
       cardEl.innerHTML = `
         <div class="card-corner top-left">
           <span class="card-rank">${parsed.rank}</span>
           <span class="card-suit">${parsed.suitSymbol}</span>
         </div>
         ${badgeHtml}
-        <div class="card-center-suit">${parsed.suitSymbol}</div>
+        ${centerArtHtml}
         <div class="card-corner bottom-right">
           <span class="card-rank">${parsed.rank}</span>
           <span class="card-suit">${parsed.suitSymbol}</span>

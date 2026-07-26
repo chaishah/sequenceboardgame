@@ -1,5 +1,5 @@
 /**
- * Sequence Board Renderer Module (Phase 2 Enhanced)
+ * Sequence Board Renderer Module (Fancy Court Cards & Visual Illustrations)
  */
 
 import { BOARD_LAYOUT, parseCard } from '../game/constants.js';
@@ -11,6 +11,16 @@ export class BoardRenderer {
     this.onTileHover = onTileHover || (() => {});
     this.tileElements = Array(10).fill(null).map(() => Array(10).fill(null));
     this.initBoard();
+  }
+
+  getRankIcon(rank) {
+    switch (rank) {
+      case 'K': return '👑'; // King Crown
+      case 'Q': return '👸'; // Queen Tiara
+      case 'J': return '🗡️'; // Jack Sword/Knight
+      case 'A': return '⚜️'; // Ace Crest
+      default: return null;
+    }
   }
 
   initBoard() {
@@ -36,10 +46,22 @@ export class BoardRenderer {
         } else {
           const parsed = parseCard(cardCode);
           tileEl.classList.add(`suit-${parsed.suit}`, `color-${parsed.color}`);
+          if (['K', 'Q', 'J', 'A'].includes(parsed.rank)) {
+            tileEl.classList.add('court-card-tile');
+          }
+
+          const rankIcon = this.getRankIcon(parsed.rank);
+          const rankDisplay = rankIcon
+            ? `<div class="court-rank-box"><span class="tile-rank">${parsed.rank}</span><span class="court-icon">${rankIcon}</span></div>`
+            : `<div class="tile-rank">${parsed.rank}</div>`;
+
+          const centerArt = rankIcon
+            ? `<div class="tile-center-art"><span class="court-center-icon">${rankIcon}</span><span class="court-center-suit">${parsed.suitSymbol}</span></div>`
+            : `<div class="tile-suit">${parsed.suitSymbol}</div>`;
 
           tileEl.innerHTML = `
-            <div class="tile-rank">${parsed.rank}</div>
-            <div class="tile-suit">${parsed.suitSymbol}</div>
+            ${rankDisplay}
+            ${centerArt}
             <div class="tile-watermark">${parsed.suitSymbol}</div>
             <div class="chip-container"></div>
             <div class="last-move-marker"></div>
