@@ -1,13 +1,14 @@
 /**
- * Sequence Board Renderer Module
+ * Sequence Board Renderer Module (Phase 2 Enhanced)
  */
 
-import { BOARD_LAYOUT, parseCard, SUIT_SYMBOLS } from '../game/constants.js';
+import { BOARD_LAYOUT, parseCard } from '../game/constants.js';
 
 export class BoardRenderer {
-  constructor(containerElement, onTileClick) {
+  constructor(containerElement, onTileClick, onTileHover) {
     this.container = containerElement;
     this.onTileClick = onTileClick;
+    this.onTileHover = onTileHover || (() => {});
     this.tileElements = Array(10).fill(null).map(() => Array(10).fill(null));
     this.initBoard();
   }
@@ -41,11 +42,20 @@ export class BoardRenderer {
             <div class="tile-suit">${parsed.suitSymbol}</div>
             <div class="tile-watermark">${parsed.suitSymbol}</div>
             <div class="chip-container"></div>
+            <div class="last-move-marker"></div>
           `;
         }
 
         tileEl.addEventListener('click', () => {
           this.onTileClick(r, c);
+        });
+
+        tileEl.addEventListener('mouseenter', () => {
+          this.onTileHover(r, c, cardCode);
+        });
+
+        tileEl.addEventListener('mouseleave', () => {
+          this.onTileHover(null, null, null);
         });
 
         this.tileElements[r][c] = tileEl;
@@ -57,13 +67,13 @@ export class BoardRenderer {
   }
 
   render(state) {
-    const { grid, validTargets, winningSequences, lockedCells } = state;
+    const { grid, validTargets, winningSequences, lockedCells, lastMove } = state;
 
     // Reset highlights & chips
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         const tileEl = this.tileElements[r][c];
-        tileEl.classList.remove('valid-target', 'removal-target', 'sequence-winning-tile', 'locked-tile');
+        tileEl.classList.remove('valid-target', 'removal-target', 'sequence-winning-tile', 'locked-tile', 'last-move-tile');
 
         const chipContainer = tileEl.querySelector('.chip-container');
         if (chipContainer) {
@@ -78,6 +88,14 @@ export class BoardRenderer {
             }
           }
         }
+      }
+    }
+
+    // Highlight Last Move
+    if (lastMove && lastMove.target) {
+      const lastTile = this.tileElements[lastMove.target.r][lastMove.target.c];
+      if (lastTile) {
+        lastTile.classList.add('last-move-tile');
       }
     }
 

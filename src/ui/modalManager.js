@@ -1,16 +1,19 @@
 /**
- * Modal Dialogs Manager
- * Handles New Game, Multi-Device Room creation & QR Code, Rules, and Victory popups.
+ * Modal Dialogs Manager (Phase 2 Enhanced)
  */
 
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
 import { parseCard } from '../game/constants.js';
+import { statsManager } from '../game/statsManager.js';
+
+const AVATARS = ['👤', '🦊', '🐉', '👑', '🚀', '⚡', '🎲', '🌟', '💎', '🎯'];
 
 export class ModalManager {
   constructor(handlers) {
     this.handlers = handlers; // { onStartNewGame, onHostRoom, onJoinRoom }
     this.activeModal = null;
+    this.selectedAvatar = '🦊';
   }
 
   closeModal() {
@@ -33,6 +36,19 @@ export class ModalManager {
           <button class="modal-close-btn">&times;</button>
         </div>
         <div class="modal-body">
+          <!-- Avatar & Name Selector -->
+          <div class="form-group avatar-picker-group">
+            <label>Choose Your Avatar & Name:</label>
+            <div class="name-avatar-row">
+              <div class="avatar-grid" id="avatar-grid">
+                ${AVATARS.map(a => `
+                  <button class="avatar-btn ${a === this.selectedAvatar ? 'active' : ''}" data-avatar="${a}">${a}</button>
+                `).join('')}
+              </div>
+              <input type="text" id="input-player-name" value="Player 1" maxlength="12" placeholder="Your Name" />
+            </div>
+          </div>
+
           <div class="mode-tabs">
             <button class="tab-btn active" data-tab="ai">🤖 vs AI Bot (Single Player)</button>
             <button class="tab-btn" data-tab="online">📱 Multi-Device Online (P2P)</button>
@@ -83,7 +99,17 @@ export class ModalManager {
 
     document.body.appendChild(modalEl);
 
-    // Setup Tab switching
+    // Avatar selection
+    const avatarBtns = modalEl.querySelectorAll('#avatar-grid .avatar-btn');
+    avatarBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        avatarBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.selectedAvatar = btn.dataset.avatar;
+      });
+    });
+
+    // Tab switching
     const tabs = modalEl.querySelectorAll('.tab-btn');
     const aiContent = modalEl.querySelector('#tab-ai-content');
     const onlineContent = modalEl.querySelector('#tab-online-content');
@@ -102,33 +128,37 @@ export class ModalManager {
       });
     });
 
-    // Setup Toggle groups
     this.setupToggleGroup(modalEl, '#ai-diff-toggle');
     this.setupToggleGroup(modalEl, '#ai-players-toggle');
 
-    // Close button
     modalEl.querySelector('.modal-close-btn').addEventListener('click', () => this.closeModal());
 
-    // Start AI Game
     modalEl.querySelector('#btn-start-ai').addEventListener('click', () => {
       const diff = modalEl.querySelector('#ai-diff-toggle .active').dataset.val;
       const numPlayers = parseInt(modalEl.querySelector('#ai-players-toggle .active').dataset.val, 10);
+      const name = modalEl.querySelector('#input-player-name').value.trim() || 'Player 1';
       this.closeModal();
-      this.handlers.onStartNewGame({ numPlayers, gameMode: 'ai', aiDifficulty: diff });
+      this.handlers.onStartNewGame({
+        numPlayers,
+        gameMode: 'ai',
+        aiDifficulty: diff,
+        playerName: name,
+        playerAvatar: this.selectedAvatar
+      });
     });
 
-    // Host Room
     modalEl.querySelector('#btn-host-room').addEventListener('click', () => {
+      const name = modalEl.querySelector('#input-player-name').value.trim() || 'Player 1';
       this.closeModal();
-      this.handlers.onHostRoom();
+      this.handlers.onHostRoom({ playerName: name, playerAvatar: this.selectedAvatar });
     });
 
-    // Join Room
     modalEl.querySelector('#btn-join-room').addEventListener('click', () => {
       const code = modalEl.querySelector('#input-room-code').value.trim();
+      const name = modalEl.querySelector('#input-player-name').value.trim() || 'Player 2';
       if (code) {
         this.closeModal();
-        this.handlers.onJoinRoom(code);
+        this.handlers.onJoinRoom(code, { playerName: name, playerAvatar: this.selectedAvatar });
       }
     });
   }
@@ -163,32 +193,83 @@ export class ModalManager {
           <div class="share-actions">
             <button class="btn-secondary" id="btn-copy-link">📋 Copy Game Link</button>
           </div>
-
-          <div class="connection-status-msg" id="conn-status-msg">
-            <span class="spinner-dot"></span> Waiting for player to connect...
-          </div>
         </div>
       </div>
     `;
 
     document.body.appendChild(modalEl);
-
     modalEl.querySelector('.modal-close-btn').addEventListener('click', () => this.closeModal());
 
-    // Generate QR Code onto canvas
     const canvas = modalEl.querySelector('#room-qr-canvas');
     if (canvas) {
       QRCode.toCanvas(canvas, shareUrl, { width: 180, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } }, (err) => {
-        if (err) console.error('QR code generation error:', err);
+        if (err) console.error('QR code error:', err);
       });
     }
 
-    // Copy link
     modalEl.querySelector('#btn-copy-link').addEventListener('click', (e) => {
       navigator.clipboard.writeText(shareUrl).then(() => {
         e.target.innerText = '✅ Link Copied!';
         setTimeout(() => { e.target.innerText = '📋 Copy Game Link'; }, 2000);
       });
+    });
+  }
+
+  showStatsModal() {
+    this.closeModal();
+
+    const stats = statsManager.getStats();
+
+    const modalEl = document.createElement('div');
+    modalEl.id = 'active-seq-modal';
+    modalEl.className = 'modal-backdrop';
+
+    modalEl.innerHTML = `
+      <div class="modal-card stats-card">
+        <div class="modal-header">
+          <h2>🏆 Match Statistics</h2>
+          <button class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-num">${stats.gamesPlayed}</span>
+              <span class="stat-label">Games Played</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num win-color">${stats.wins}</span>
+              <span class="stat-label">Wins</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num loss-color">${stats.losses}</span>
+              <span class="stat-label">Losses</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num streak-color">${stats.winStreak}</span>
+              <span class="stat-label">Current Streak</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num">${stats.bestWinStreak}</span>
+              <span class="stat-label">Best Streak</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num">${stats.totalSequences}</span>
+              <span class="stat-label">Sequences Formed</span>
+            </div>
+          </div>
+          <button class="btn-secondary btn-block mt-16" id="btn-reset-stats">Reset Statistics ↻</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalEl);
+    modalEl.querySelector('.modal-close-btn').addEventListener('click', () => this.closeModal());
+
+    modalEl.querySelector('#btn-reset-stats').addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset your match statistics?')) {
+        statsManager.resetStats();
+        this.showStatsModal();
+      }
     });
   }
 
@@ -291,10 +372,9 @@ export class ModalManager {
   showVictoryModal(winner, onRestart) {
     this.closeModal();
 
-    // Trigger Canvas Confetti celebration!
     confetti({
-      particleCount: 120,
-      spread: 70,
+      particleCount: 140,
+      spread: 80,
       origin: { y: 0.6 }
     });
 
@@ -305,7 +385,7 @@ export class ModalManager {
     modalEl.innerHTML = `
       <div class="modal-card victory-card">
         <div class="modal-body text-center">
-          <div class="victory-icon">🏆</div>
+          <div class="victory-icon">${winner.avatar || '🏆'}</div>
           <h1 class="victory-title">${winner.name} Wins!</h1>
           <p class="victory-sub">Successfully completed the required Sequences to claim victory!</p>
           

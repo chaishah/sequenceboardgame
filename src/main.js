@@ -1,5 +1,5 @@
 /**
- * Sequence Board Game Main Entry Point
+ * Sequence Board Game Main Entry Point (Phase 2 Enhanced)
  */
 
 import './styles/main.css';
@@ -12,6 +12,7 @@ import { SequenceAI } from './game/ai.js';
 import { BoardRenderer } from './ui/boardRenderer.js';
 import { HandRenderer } from './ui/handRenderer.js';
 import { StatusRenderer } from './ui/statusRenderer.js';
+import { ActionLogRenderer } from './ui/actionLogRenderer.js';
 import { ModalManager } from './ui/modalManager.js';
 import { NetworkManager } from './net/peerManager.js';
 import { sounds } from './ui/soundEffects.js';
@@ -26,18 +27,21 @@ class SequenceApp {
     this.initRenderers();
     this.initNetworkEvents();
 
-    // Subscribe engine state updates to render
     this.engine.subscribe((state) => this.onEngineStateChange(state));
 
-    // Check URL parameters for Room code
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
 
     if (roomParam) {
       this.handleJoinRoom(roomParam);
     } else {
-      // Start default vs AI (Medium)
-      this.engine.startNewGame({ numPlayers: 2, gameMode: 'ai', aiDifficulty: 'medium' });
+      this.engine.startNewGame({
+        numPlayers: 2,
+        gameMode: 'ai',
+        aiDifficulty: 'medium',
+        playerName: 'Player 1',
+        playerAvatar: '🦊'
+      });
     }
   }
 
@@ -46,6 +50,7 @@ class SequenceApp {
     appEl.innerHTML = `
       <header id="status-header"></header>
       <main class="main-game-container">
+        <div id="action-log-container"></div>
         <div id="board-container" class="board-container"></div>
         <div id="hand-container" class="hand-container"></div>
       </main>
@@ -53,16 +58,22 @@ class SequenceApp {
   }
 
   initRenderers() {
+    this.actionLogRenderer = new ActionLogRenderer(
+      document.getElementById('action-log-container')
+    );
+
     this.boardRenderer = new BoardRenderer(
       document.getElementById('board-container'),
-      (r, c) => this.handleTileClick(r, c)
+      (r, c) => this.handleTileClick(r, c),
+      (r, c, cardCode) => this.handleTileHover(cardCode)
     );
 
     this.handRenderer = new HandRenderer(
       document.getElementById('hand-container'),
       (cardIdx) => this.handleCardSelect(cardIdx),
       (cardIdx) => this.handleDiscardDeadCard(cardIdx),
-      (cardCode) => this.engine.isCardDead(cardCode)
+      (cardCode) => this.engine.isCardDead(cardCode),
+      () => this.handleSortHand()
     );
 
     this.statusRenderer = new StatusRenderer(
@@ -74,12 +85,12 @@ class SequenceApp {
           numPlayers: this.engine.numPlayers
         }),
         onToggleRules: () => this.modalManager.showRulesModal(),
+        onViewStats: () => this.modalManager.showStatsModal(),
         onToggleSound: () => {
-          const enabled = sounds.toggleSound();
+          sounds.toggleSound();
           this.render();
         },
         onViewDiscard: () => {
-          const state = this.engine.getState();
           this.modalManager.showDiscardPileModal(this.engine.deck.discardPile);
         }
       }
@@ -89,17 +100,17 @@ class SequenceApp {
       onStartNewGame: (config) => {
         this.localPlayerId = 1;
         this.net.cleanup();
+        this.actionLogRenderer.clear();
         this.engine.startNewGame(config);
       },
-      onHostRoom: () => this.handleHostRoom(),
-      onJoinRoom: (code) => this.handleJoinRoom(code)
+      onHostRoom: (config) => this.handleHostRoom(config),
+      onJoinRoom: (code, config) => this.handleJoinRoom(code, config)
     });
   }
 
   initNetworkEvents() {
     this.net.callbacks.onConnected = ({ isHost }) => {
       if (isHost) {
-        // Host sends initial state sync to guest
         this.net.broadcastState(this.engine.getState());
       }
     };
@@ -128,9 +139,7 @@ class SequenceApp {
     const state = this.engine.getState();
     if (state.winner) return;
 
-    // Check if it's local player's turn
     if (state.currentPlayer.id !== this.localPlayerId) return;
-
     if (state.selectedCardIndex === null) return;
 
     const validTargets = state.validTargets || [];
@@ -153,6 +162,11 @@ class SequenceApp {
         }
       }
     }
+  }
+
+  handleTileHover(cardCode) {
+    this.handRenderer.setHoveredCard(cardCode);
+    this.render();
   }
 
   handleCardSelect(cardIndex) {
@@ -183,10 +197,20 @@ class SequenceApp {
     }
   }
 
-  async handleHostRoom() {
+  handleSortHand() {
+    this.engine.sortCurrentPlayerHand();
+  }
+
+  async handleHostRoom(config = {}) {
     try {
       this.localPlayerId = 1;
-      this.engine.startNewGame({ numPlayers: 2, gameMode: 'online' });
+      this.actionLogRenderer.clear();
+      this.engine.startNewGame({
+        numPlayers: 2,
+        gameMode: 'online',
+        playerName: config.playerName || 'Host',
+        playerAvatar: config.playerAvatar || '👑'
+      });
       const roomCode = await this.net.createRoom();
       this.modalManager.showRoomShareModal(roomCode);
     } catch (err) {
@@ -194,9 +218,10 @@ class SequenceApp {
     }
   }
 
-  async handleJoinRoom(code) {
+  async handleJoinRoom(code, config = {}) {
     try {
       this.localPlayerId = 2;
+      this.actionLogRenderer.clear();
       await this.net.joinRoom(code);
       alert(`Connected to Room ${code}! You are Player 2.`);
     } catch (err) {
@@ -205,22 +230,27 @@ class SequenceApp {
   }
 
   onEngineStateChange(state) {
+    if (state.lastMove) {
+      this.actionLogRenderer.addLog(state.lastMove);
+    }
+
     this.render();
 
-    // Check Victory
     if (state.winner) {
       sounds.playSequenceWin();
       this.modalManager.showVictoryModal(state.winner, () => {
         this.engine.startNewGame({
           numPlayers: state.numPlayers,
           gameMode: state.gameMode,
-          aiDifficulty: state.aiDifficulty
+          aiDifficulty: state.aiDifficulty,
+          playerName: state.players[0].name,
+          playerAvatar: state.players[0].avatar
         });
       });
       return;
     }
 
-    // Check if current turn belongs to AI Bot
+    // AI Bot turn execution
     if (state.gameMode === 'ai' && state.currentPlayer.isAI) {
       setTimeout(() => {
         const move = SequenceAI.getBestMove(this.engine, state.aiDifficulty);
@@ -240,7 +270,7 @@ class SequenceApp {
             }, 400);
           }
         }
-      }, 600);
+      }, 650);
     }
   }
 
@@ -252,7 +282,6 @@ class SequenceApp {
   }
 }
 
-// Instantiate App when DOM is loaded
 window.addEventListener('DOMContentLoaded', () => {
   new SequenceApp();
 });

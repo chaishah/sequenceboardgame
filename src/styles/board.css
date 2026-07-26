@@ -1,4 +1,4 @@
-/* Clean Minimalist Light Mode Board Grid Styles */
+/* Clean Minimalist Light Mode Board Grid Styles (Phase 2) */
 
 .sequence-board-grid {
   display: grid;
@@ -120,6 +120,24 @@
   background: radial-gradient(circle at 30% 30%, #ef4444, #b91c1c);
 }
 
+/* Last Move Marker */
+.board-tile.last-move-tile {
+  border: 2.5px solid #ec4899;
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.6);
+}
+
+.board-tile.last-move-tile .last-move-marker {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ec4899;
+  box-shadow: 0 0 6px #ec4899;
+  animation: lastMovePing 1.2s infinite;
+}
+
 /* Highlights */
 .board-tile.valid-target {
   background: #eef2ff;
@@ -143,6 +161,12 @@
 
 .board-tile.locked-tile .chip {
   border-color: #f59e0b;
+}
+
+@keyframes lastMovePing {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes chipDrop {

@@ -1,10 +1,11 @@
 /**
- * Sequence Board Game Core Engine & State Manager
+ * Sequence Board Game Core Engine & State Manager (Phase 2 Enhanced)
  */
 
 import { BOARD_LAYOUT, PLAYER_CONFIGS, HAND_SIZES, SEQUENCES_TO_WIN, parseCard } from './constants.js';
 import { Deck } from './deck.js';
 import { evaluateBoardSequences, isCellLocked } from './sequenceLogic.js';
+import { statsManager } from './statsManager.js';
 
 export class GameEngine {
   constructor() {
@@ -21,6 +22,7 @@ export class GameEngine {
     this.lockedCells = new Set();
     this.moveHistory = [];
     this.onStateChangeCallbacks = [];
+    this.lastMove = null;
   }
 
   subscribe(callback) {
@@ -36,7 +38,7 @@ export class GameEngine {
   /**
    * Initializes a fresh new game
    */
-  startNewGame({ numPlayers = 2, gameMode = 'ai', aiDifficulty = 'medium', localPlayerId = 1 } = {}) {
+  startNewGame({ numPlayers = 2, gameMode = 'ai', aiDifficulty = 'medium', localPlayerId = 1, playerName = 'Player 1', playerAvatar = '🦊' } = {}) {
     this.numPlayers = numPlayers;
     this.gameMode = gameMode;
     this.aiDifficulty = aiDifficulty;
@@ -45,11 +47,10 @@ export class GameEngine {
     this.winningSequences = [];
     this.moveHistory = [];
     this.selectedCardIndex = null;
+    this.lastMove = null;
 
-    // Reset 10x10 grid
+    // Reset 10x10 grid & Deck
     this.grid = Array(10).fill(null).map(() => Array(10).fill(null));
-
-    // Reset Deck
     this.deck.reset();
 
     // Initialize Players
@@ -58,7 +59,7 @@ export class GameEngine {
 
     for (let i = 0; i < numPlayers; i++) {
       const cfg = PLAYER_CONFIGS[i];
-      const isAI = gameMode === 'ai' && i > 0; // In single player, player 1 is human, others are AI
+      const isAI = gameMode === 'ai' && i > 0;
       const hand = [];
       for (let h = 0; h < handSize; h++) {
         const drawn = this.deck.draw();
@@ -67,7 +68,8 @@ export class GameEngine {
 
       this.players.push({
         id: cfg.id,
-        name: isAI ? `Bot (${aiDifficulty.toUpperCase()})` : cfg.name,
+        name: isAI ? `Bot (${aiDifficulty.toUpperCase()})` : (i === 0 ? playerName : cfg.name),
+        avatar: isAI ? '🤖' : (i === 0 ? playerAvatar : '👤'),
         color: cfg.color,
         chipClass: cfg.chipClass,
         hex: cfg.hex,
@@ -97,9 +99,27 @@ export class GameEngine {
     this.notifyStateChange();
   }
 
-  /**
-   * Returns list of valid board coordinates [{r, c, isRemoval}] for a given cardCode in hand
-   */
+  sortCurrentPlayerHand() {
+    const curPlayer = this.getCurrentPlayer();
+    if (!curPlayer) return;
+
+    // Sort cards by suit, then rank
+    const suitOrder = { S: 1, H: 2, D: 3, C: 4 };
+    const rankOrder = { '2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14 };
+
+    curPlayer.hand.sort((a, b) => {
+      const pa = parseCard(a);
+      const pb = parseCard(b);
+      if (suitOrder[pa.suit] !== suitOrder[pb.suit]) {
+        return suitOrder[pa.suit] - suitOrder[pb.suit];
+      }
+      return rankOrder[pa.rank] - rankOrder[pb.rank];
+    });
+
+    this.selectedCardIndex = null;
+    this.notifyStateChange();
+  }
+
   getValidTargetsForCard(cardCode) {
     if (!cardCode) return [];
     const parsed = parseCard(cardCode);
@@ -107,7 +127,6 @@ export class GameEngine {
     const curPlayer = this.getCurrentPlayer();
 
     if (parsed.isTwoEyed) {
-      // Wild: Any un-chipped space (excluding corners)
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 10; c++) {
           if (BOARD_LAYOUT[r][c] !== 'WILD' && this.grid[r][c] === null) {
@@ -116,7 +135,6 @@ export class GameEngine {
         }
       }
     } else if (parsed.isOneEyed) {
-      // Removal: Any opponent chip that is NOT locked in a completed sequence
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 10; c++) {
           const occupant = this.grid[r][c];
@@ -128,7 +146,6 @@ export class GameEngine {
         }
       }
     } else {
-      // Standard Card: Up to 2 matching spaces on board that are un-chipped
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 10; c++) {
           if (BOARD_LAYOUT[r][c] === cardCode && this.grid[r][c] === null) {
@@ -141,15 +158,11 @@ export class GameEngine {
     return targets;
   }
 
-  /**
-   * Checks if a card in hand is "dead" (both matching board spaces occupied)
-   */
   isCardDead(cardCode) {
     if (!cardCode) return false;
     const parsed = parseCard(cardCode);
-    if (parsed.isJack) return false; // Jacks are never dead!
+    if (parsed.isJack) return false;
 
-    // Find all spaces for this card on board
     let matchingSpaces = 0;
     let occupiedSpaces = 0;
 
@@ -157,9 +170,7 @@ export class GameEngine {
       for (let c = 0; c < 10; c++) {
         if (BOARD_LAYOUT[r][c] === cardCode) {
           matchingSpaces++;
-          if (this.grid[r][c] !== null) {
-            occupiedSpaces++;
-          }
+          if (this.grid[r][c] !== null) occupiedSpaces++;
         }
       }
     }
@@ -167,9 +178,6 @@ export class GameEngine {
     return matchingSpaces > 0 && matchingSpaces === occupiedSpaces;
   }
 
-  /**
-   * Executes playing a selected card to board location (r, c)
-   */
   executeMove(r, c) {
     if (this.winner) return false;
     const curPlayer = this.getCurrentPlayer();
@@ -183,32 +191,44 @@ export class GameEngine {
 
     if (!validTarget) return false;
 
+    const parsed = parseCard(cardCode);
+    if (parsed.isJack) {
+      statsManager.recordJack();
+    }
+
     // Apply move
     if (validTarget.isRemoval) {
       const prevOwner = this.grid[r][c];
       this.grid[r][c] = null;
-      this.moveHistory.push({
+      this.lastMove = {
         player: curPlayer.id,
+        playerName: curPlayer.name,
+        playerAvatar: curPlayer.avatar,
+        playerHex: curPlayer.hex,
         card: cardCode,
         action: 'remove',
         target: { r, c },
         prevOwner
-      });
+      };
     } else {
       this.grid[r][c] = curPlayer.id;
-      this.moveHistory.push({
+      this.lastMove = {
         player: curPlayer.id,
+        playerName: curPlayer.name,
+        playerAvatar: curPlayer.avatar,
+        playerHex: curPlayer.hex,
         card: cardCode,
         action: 'place',
         target: { r, c }
-      });
+      };
     }
 
-    // Discard played card from hand
+    this.moveHistory.push(this.lastMove);
+
+    // Discard played card from hand & draw replacement
     curPlayer.hand.splice(this.selectedCardIndex, 1);
     this.deck.discard(cardCode);
 
-    // Draw replacement card
     const drawn = this.deck.draw();
     if (drawn) {
       curPlayer.hand.push(drawn);
@@ -217,13 +237,29 @@ export class GameEngine {
     this.selectedCardIndex = null;
 
     // Re-evaluate sequences & victory condition
+    const prevSeqCount = curPlayer.sequencesCount;
     this.updateSequencesAndLocks();
     const winningSeqNeeded = SEQUENCES_TO_WIN[this.numPlayers] || 2;
 
+    if (curPlayer.sequencesCount > prevSeqCount) {
+      statsManager.recordSequence();
+      this.moveHistory.push({
+        player: curPlayer.id,
+        playerName: curPlayer.name,
+        playerAvatar: curPlayer.avatar,
+        playerHex: curPlayer.hex,
+        action: 'sequence'
+      });
+    }
+
     if (curPlayer.sequencesCount >= winningSeqNeeded) {
       this.winner = curPlayer;
+      if (curPlayer.id === 1) {
+        statsManager.recordWin();
+      } else {
+        statsManager.recordLoss();
+      }
     } else {
-      // Advance turn
       this.currentTurnIndex = (this.currentTurnIndex + 1) % this.numPlayers;
     }
 
@@ -231,9 +267,6 @@ export class GameEngine {
     return true;
   }
 
-  /**
-   * Discards a dead card from hand and draws a replacement without ending turn
-   */
   discardDeadCard(cardIndex) {
     if (this.winner) return false;
     const curPlayer = this.getCurrentPlayer();
@@ -242,11 +275,9 @@ export class GameEngine {
     const cardCode = curPlayer.hand[cardIndex];
     if (!this.isCardDead(cardCode)) return false;
 
-    // Remove from hand and add to discard
     curPlayer.hand.splice(cardIndex, 1);
     this.deck.discard(cardCode);
 
-    // Draw replacement
     const drawn = this.deck.draw();
     if (drawn) {
       curPlayer.hand.push(drawn);
@@ -256,12 +287,17 @@ export class GameEngine {
       this.selectedCardIndex = null;
     }
 
-    this.moveHistory.push({
+    const logEntry = {
       player: curPlayer.id,
+      playerName: curPlayer.name,
+      playerAvatar: curPlayer.avatar,
+      playerHex: curPlayer.hex,
       card: cardCode,
       action: 'dead_discard'
-    });
+    };
 
+    this.lastMove = logEntry;
+    this.moveHistory.push(logEntry);
     this.notifyStateChange();
     return true;
   }
@@ -303,11 +339,11 @@ export class GameEngine {
       topDiscard: this.deck.peekTopDiscard(),
       gameMode: this.gameMode,
       aiDifficulty: this.aiDifficulty,
-      lastMove: this.moveHistory.length > 0 ? this.moveHistory[this.moveHistory.length - 1] : null
+      lastMove: this.lastMove,
+      moveHistory: this.moveHistory
     };
   }
 
-  // Restore full state for network sync
   loadState(fullState) {
     this.grid = fullState.grid;
     this.players = fullState.players;
@@ -316,6 +352,7 @@ export class GameEngine {
     this.gameMode = fullState.gameMode;
     this.aiDifficulty = fullState.aiDifficulty;
     this.winner = fullState.winner;
+    this.lastMove = fullState.lastMove;
     this.deck.setState(fullState.deckCards || [], fullState.deckDiscard || []);
     this.updateSequencesAndLocks();
     this.notifyStateChange();

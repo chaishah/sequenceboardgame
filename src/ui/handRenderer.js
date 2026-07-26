@@ -1,15 +1,22 @@
 /**
- * Player Hand Cards Renderer
+ * Player Hand Cards Renderer (Phase 2 Enhanced)
  */
 
-import { parseCard, getCardName } from '../game/constants.js';
+import { parseCard } from '../game/constants.js';
 
 export class HandRenderer {
-  constructor(containerElement, onCardSelect, onDiscardDeadCard, isCardDeadCheck) {
+  constructor(containerElement, onCardSelect, onDiscardDeadCard, isCardDeadCheck, onSortHand) {
     this.container = containerElement;
     this.onCardSelect = onCardSelect;
     this.onDiscardDeadCard = onDiscardDeadCard;
     this.isCardDeadCheck = isCardDeadCheck;
+    this.onSortHand = onSortHand || (() => {});
+    this.hoveredCardCode = null;
+    this.sortMode = 'none'; // 'suit', 'rank', 'none'
+  }
+
+  setHoveredCard(cardCode) {
+    this.hoveredCardCode = cardCode;
   }
 
   render(state, localPlayerId = 1) {
@@ -18,23 +25,47 @@ export class HandRenderer {
     const curPlayer = state.currentPlayer;
     if (!curPlayer) return;
 
-    // Is it local player's turn or are we viewing hand?
     const isLocalTurn = curPlayer.id === localPlayerId;
     const activePlayer = state.players.find(p => p.id === localPlayerId) || curPlayer;
 
-    const handContainer = document.createElement('div');
-    handContainer.className = 'hand-cards-wrapper';
+    const wrapperEl = document.createElement('div');
+    wrapperEl.className = 'hand-panel-inner';
+
+    // Header controls: Hand Title & Sort Button
+    const headerEl = document.createElement('div');
+    headerEl.className = 'hand-header-bar';
+    headerEl.innerHTML = `
+      <div class="hand-title">
+        <span class="player-avatar-small">${activePlayer.avatar || '👤'}</span>
+        <strong>Your Cards</strong> (${activePlayer.hand.length})
+      </div>
+      <div class="hand-actions">
+        <button class="btn-sort-hand" title="Sort Hand Cards">
+          🔀 Sort Cards
+        </button>
+      </div>
+    `;
+
+    headerEl.querySelector('.btn-sort-hand').addEventListener('click', () => {
+      this.onSortHand();
+    });
+
+    // Hand Cards List
+    const handCardsEl = document.createElement('div');
+    handCardsEl.className = 'hand-cards-wrapper';
 
     activePlayer.hand.forEach((cardCode, idx) => {
       const parsed = parseCard(cardCode);
       const isSelected = isLocalTurn && state.selectedCardIndex === idx;
       const isDead = this.isCardDeadCheck(cardCode);
+      const isHoverMatch = this.hoveredCardCode && (cardCode === this.hoveredCardCode || parsed.isTwoEyed);
 
       const cardEl = document.createElement('div');
       cardEl.className = `playing-card suit-${parsed.suit} color-${parsed.color}`;
       if (isSelected) cardEl.classList.add('selected');
       if (isDead) cardEl.classList.add('dead-card');
       if (parsed.isJack) cardEl.classList.add('jack-card');
+      if (isHoverMatch) cardEl.classList.add('hover-match');
 
       let badgeHtml = '';
       if (parsed.isTwoEyed) {
@@ -75,9 +106,11 @@ export class HandRenderer {
         }
       });
 
-      handContainer.appendChild(cardEl);
+      handCardsEl.appendChild(cardEl);
     });
 
-    this.container.appendChild(handContainer);
+    wrapperEl.appendChild(headerEl);
+    wrapperEl.appendChild(handCardsEl);
+    this.container.appendChild(wrapperEl);
   }
 }

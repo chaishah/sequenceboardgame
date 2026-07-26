@@ -1,5 +1,5 @@
 /**
- * Game Header & Status Bar Renderer
+ * Game Header & Status Bar Renderer (Phase 2 Enhanced)
  */
 
 import { SEQUENCES_TO_WIN, parseCard } from '../game/constants.js';
@@ -7,7 +7,7 @@ import { SEQUENCES_TO_WIN, parseCard } from '../game/constants.js';
 export class StatusRenderer {
   constructor(containerElement, handlers) {
     this.container = containerElement;
-    this.handlers = handlers; // { onNewGame, onToggleRules, onToggleSound, onViewDiscard }
+    this.handlers = handlers; // { onNewGame, onToggleRules, onToggleSound, onViewDiscard, onViewStats }
   }
 
   render(state, isSoundEnabled) {
@@ -19,7 +19,7 @@ export class StatusRenderer {
     const barEl = document.createElement('div');
     barEl.className = 'status-bar-wrapper';
 
-    // Left controls: New Game, Rules, Sound
+    // Left controls: New Game, Rules, Stats, Sound
     const leftGroup = document.createElement('div');
     leftGroup.className = 'status-group left-group';
 
@@ -35,6 +35,12 @@ export class StatusRenderer {
     rulesBtn.innerHTML = '📖 <span class="btn-text">Rules</span>';
     rulesBtn.addEventListener('click', () => this.handlers.onToggleRules());
 
+    const statsBtn = document.createElement('button');
+    statsBtn.className = 'btn-status-icon';
+    statsBtn.title = 'View Statistics';
+    statsBtn.innerHTML = '🏆 <span class="btn-text">Stats</span>';
+    statsBtn.addEventListener('click', () => this.handlers.onViewStats());
+
     const soundBtn = document.createElement('button');
     soundBtn.className = 'btn-status-icon';
     soundBtn.title = 'Toggle Sound';
@@ -43,6 +49,7 @@ export class StatusRenderer {
 
     leftGroup.appendChild(newGameBtn);
     leftGroup.appendChild(rulesBtn);
+    leftGroup.appendChild(statsBtn);
     leftGroup.appendChild(soundBtn);
 
     // Center Group: Turn Indicator & Player Scores
@@ -52,19 +59,19 @@ export class StatusRenderer {
     if (state.winner) {
       centerGroup.innerHTML = `
         <div class="turn-banner winner-banner">
-          🏆 <strong>${state.winner.name} Wins!</strong> (Completed ${state.winner.sequencesCount}/${seqNeeded} Sequences)
+          🏆 <strong>${state.winner.avatar || '👑'} ${state.winner.name} Wins!</strong> (${state.winner.sequencesCount}/${seqNeeded} Sequences)
         </div>
       `;
     } else if (curPlayer) {
       centerGroup.innerHTML = `
         <div class="turn-banner active-turn" style="border-color: ${curPlayer.hex}">
-          <span class="player-dot" style="background-color: ${curPlayer.hex}"></span>
+          <span class="player-avatar-mini">${curPlayer.avatar || '👤'}</span>
           <span class="turn-text">${curPlayer.name}'s Turn</span>
         </div>
         <div class="scores-container">
           ${state.players.map(p => `
             <div class="player-score-badge ${p.id === curPlayer.id ? 'active-player-badge' : ''}">
-              <span class="score-dot" style="background-color: ${p.hex}"></span>
+              <span class="score-avatar">${p.avatar || '👤'}</span>
               <span class="score-name">${p.name}:</span>
               <span class="score-val">${p.sequencesCount}/${seqNeeded} Seq</span>
             </div>
