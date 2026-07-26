@@ -1,15 +1,18 @@
+/* Pristine White Theme & Mobile Responsiveness */
+
 :root {
-  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
-  --panel-bg: rgba(255, 255, 255, 0.85);
-  --panel-border: rgba(148, 163, 184, 0.3);
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --panel-bg: #ffffff;
+  --panel-border: #cbd5e1;
   --text-main: #0f172a;
   --text-muted: #64748b;
   --accent-primary: #4f46e5;
   --accent-primary-hover: #4338ca;
-  --accent-gold: #d97706;
+  --accent-gold: #d69e2e;
+  --accent-pink: #ec4899;
 
-  --suit-black: #0f172a;
-  --suit-red: #dc2626;
+  --suit-black: #1a202c;
+  --suit-red: #c53030;
 
   --chip-blue: #2563eb;
   --chip-green: #059669;
@@ -19,7 +22,7 @@
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
-  --shadow-panel: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-panel: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
 }
 
 * {
@@ -47,7 +50,7 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 10px;
   gap: 10px;
 }
 
@@ -57,27 +60,26 @@ body {
   justify-content: space-between;
   align-items: center;
   background: var(--panel-bg);
-  backdrop-filter: blur(12px);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
-  padding: 10px 16px;
+  padding: 8px 14px;
   box-shadow: var(--shadow-panel);
 }
 
 .status-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .btn-status-icon {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--panel-border);
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
   color: var(--text-main);
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -88,7 +90,8 @@ body {
 
 .btn-status-icon:hover {
   background: #ffffff;
-  border-color: #6366f1;
+  border-color: #4f46e5;
+  color: #4f46e5;
   transform: translateY(-1px);
 }
 
@@ -96,12 +99,12 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 30px;
   background: #ffffff;
   border: 2px solid var(--accent-primary);
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 800;
+  font-size: 0.92rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
@@ -111,17 +114,17 @@ body {
 
 .scores-container {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .player-score-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: #ffffff;
-  padding: 4px 12px;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: #f8fafc;
+  padding: 4px 10px;
   border-radius: 20px;
   border: 1px solid var(--panel-border);
 }
@@ -129,40 +132,41 @@ body {
 .player-score-badge.active-player-badge {
   border-color: #4f46e5;
   background: #eef2ff;
+  color: #4f46e5;
 }
 
 .score-avatar {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .deck-counter-badge, .btn-discard-preview {
-  background: #ffffff;
+  background: #f8fafc;
   border: 1px solid var(--panel-border);
   color: var(--text-main);
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .btn-discard-preview {
   cursor: pointer;
 }
 .btn-discard-preview:hover {
-  background: #f1f5f9;
+  background: #e2e8f0;
 }
 
-/* Main Layout & Action Log */
+/* Main Layout */
 .main-game-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-height: 0;
   position: relative;
+  width: 100%;
 }
 
 .board-container {
@@ -177,55 +181,53 @@ body {
 .hand-container {
   width: 100%;
   background: var(--panel-bg);
-  backdrop-filter: blur(12px);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 8px 10px;
   box-shadow: var(--shadow-panel);
 }
 
 /* Action Log Ticker Bar */
 .action-log-wrapper {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 320px;
+  top: 6px;
+  right: 6px;
+  width: 300px;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: var(--radius-md);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  z-index: 20;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  z-index: 30;
   transition: all 0.25s ease;
   overflow: hidden;
 }
 
 .action-log-wrapper.collapsed {
-  max-height: 42px;
+  max-height: 38px;
 }
 
 .action-log-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   cursor: pointer;
-  user-select: none;
 }
 
 .log-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 .log-badge {
   background: #4f46e5;
   color: white;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   padding: 1px 6px;
   border-radius: 10px;
 }
@@ -239,44 +241,36 @@ body {
 }
 
 .action-log-body {
-  max-height: 220px;
+  max-height: 200px;
   overflow-y: auto;
-  padding: 8px 12px;
+  padding: 6px 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .log-empty-msg {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   text-align: center;
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 .log-item {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
-  line-height: 1.4;
+  font-size: 0.8rem;
+  line-height: 1.3;
   padding: 4px 0;
   border-bottom: 1px solid #f1f5f9;
-}
-
-.log-item:last-child {
-  border-bottom: none;
-}
-
-.log-player-name {
-  font-weight: 700;
 }
 
 /* Avatar Picker & Stats Grid */
 .name-avatar-row {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .avatar-grid {
@@ -304,22 +298,22 @@ body {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .stat-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .stat-num {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: #0f172a;
 }
@@ -328,44 +322,19 @@ body {
 .stat-num.streak-color { color: #f59e0b; }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .mt-16 { margin-top: 16px; }
 
-/* Buttons */
-.btn-primary {
-  background: var(--accent-primary);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.btn-primary:hover {
-  background: var(--accent-primary-hover);
-  transform: translateY(-1px);
-}
-.btn-block { width: 100%; }
-.btn-lg { padding: 16px 28px; font-size: 1.1rem; }
-.btn-secondary {
-  background: #f1f5f9;
-  color: var(--text-main);
-  border: 1px solid var(--panel-border);
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-secondary:hover { background: #e2e8f0; }
-
+/* Mobile Optimization Rules */
 @media (max-width: 768px) {
-  #app { padding: 6px; gap: 6px; }
-  .status-bar-wrapper { padding: 6px 10px; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  #app { padding: 4px; gap: 4px; }
+  .status-bar-wrapper { padding: 6px 8px; flex-wrap: wrap; justify-content: space-between; gap: 6px; }
   .btn-text { display: none; }
-  .action-log-wrapper { position: static; width: 100%; max-height: none; }
+  .action-log-wrapper { position: static; width: 100%; max-height: none; margin-bottom: 4px; }
+  .scores-container { gap: 4px; }
+  .player-score-badge { padding: 3px 6px; font-size: 0.75rem; }
 }

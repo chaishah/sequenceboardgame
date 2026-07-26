@@ -1,4 +1,4 @@
-/* Clean Minimalist Light Mode Board Grid Styles (Phase 2) */
+/* Fancy 3D White Card Board & Casino Chips */
 
 .sequence-board-grid {
   display: grid;
@@ -9,16 +9,16 @@
   border: 4px solid #94a3b8;
   border-radius: 14px;
   padding: 4px;
-  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.12), 0 8px 15px -6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 8px 16px -6px rgba(0, 0, 0, 0.08);
   aspect-ratio: 1 / 1;
-  max-height: calc(100vh - 210px);
-  width: auto;
+  max-height: calc(100vh - 190px);
+  width: 100%;
   max-width: 100%;
 }
 
 .board-tile {
   background: #ffffff;
-  border-radius: 5px;
+  border-radius: 6px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -26,35 +26,36 @@
   padding: 3px 4px;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05), inset 0 -2px 0 rgba(0, 0, 0, 0.04);
   transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.15s ease;
   user-select: none;
 }
 
 .board-tile:hover {
-  background: #f8fafc;
-  border-color: #6366f1;
-  transform: scale(1.04);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  z-index: 5;
+  background: #ffffff;
+  border-color: #4f46e5;
+  transform: scale(1.06);
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
+  z-index: 10;
 }
 
-/* Suit Colors on Board */
+/* Royal Suit Colors on Board */
 .board-tile.color-red {
-  color: #dc2626;
+  color: #c53030;
 }
 .board-tile.color-black {
-  color: #0f172a;
+  color: #1a202c;
 }
 
 .tile-rank {
-  font-size: clamp(0.65rem, 1.3vw, 1rem);
-  font-weight: 800;
+  font-size: clamp(0.7rem, 1.4vw, 1.05rem);
+  font-weight: 900;
   line-height: 1;
 }
 
 .tile-suit {
-  font-size: clamp(0.6rem, 1.1vw, 0.9rem);
+  font-size: clamp(0.65rem, 1.2vw, 0.95rem);
   line-height: 1;
 }
 
@@ -63,32 +64,37 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: clamp(1.3rem, 2.7vw, 2.4rem);
-  opacity: 0.08;
+  font-size: clamp(1.4rem, 2.8vw, 2.5rem);
+  opacity: 0.07;
   pointer-events: none;
 }
 
-/* Corner Wilds */
+/* Gold Foil Corner Wilds (★) */
 .board-tile.corner-wild {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: linear-gradient(135deg, #fffbea 0%, #fef3c7 100%);
   color: #92400e;
-  border: 1px solid #f59e0b;
+  border: 1.5px solid #d69e2e;
+  box-shadow: inset 0 0 8px rgba(214, 158, 46, 0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
+
 .corner-star {
-  font-size: clamp(1rem, 2vw, 1.6rem);
-  color: #d97706;
-}
-.corner-label {
-  font-size: clamp(0.45rem, 0.8vw, 0.65rem);
-  font-weight: 800;
-  letter-spacing: 1px;
+  font-size: clamp(1rem, 2.2vw, 1.7rem);
+  color: #b7791f;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* Chips */
+.corner-label {
+  font-size: clamp(0.45rem, 0.85vw, 0.65rem);
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #744210;
+}
+
+/* 3D Casino Marble Chips */
 .chip-container {
   position: absolute;
   top: 0;
@@ -102,47 +108,72 @@
 }
 
 .chip {
-  width: 82%;
-  height: 82%;
+  width: 84%;
+  height: 84%;
   border-radius: 50%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.8), inset 0 -3px 5px rgba(0, 0, 0, 0.35);
   border: 2px solid #ffffff;
+  position: relative;
   animation: chipDrop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.chip-blue {
-  background: radial-gradient(circle at 30% 30%, #3b82f6, #1d4ed8);
-}
-.chip-green {
-  background: radial-gradient(circle at 30% 30%, #10b981, #047857);
-}
-.chip-red {
-  background: radial-gradient(circle at 30% 30%, #ef4444, #b91c1c);
+/* Metallic Inner Gold Rim on Chips */
+.chip::after {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: 12%;
+  width: 76%;
+  height: 76%;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.6);
+  pointer-events: none;
 }
 
-/* Last Move Marker */
+.chip-blue {
+  background: radial-gradient(circle at 30% 30%, #3b82f6 0%, #1d4ed8 70%, #1e40af 100%);
+}
+.chip-green {
+  background: radial-gradient(circle at 30% 30%, #10b981 0%, #047857 70%, #065f46 100%);
+}
+.chip-red {
+  background: radial-gradient(circle at 30% 30%, #ef4444 0%, #b91c1c 70%, #991b1b 100%);
+}
+
+/* Last Move Marker Ping */
 .board-tile.last-move-tile {
   border: 2.5px solid #ec4899;
-  box-shadow: 0 0 12px rgba(236, 72, 153, 0.6);
+  box-shadow: 0 0 14px rgba(236, 72, 153, 0.6);
 }
 
 .board-tile.last-move-tile .last-move-marker {
   position: absolute;
   top: 2px;
   right: 2px;
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #ec4899;
   box-shadow: 0 0 6px #ec4899;
   animation: lastMovePing 1.2s infinite;
 }
 
-/* Highlights */
+/* Valid Mobile Target Highlights */
 .board-tile.valid-target {
   background: #eef2ff;
   border: 2.5px solid #4f46e5;
   animation: pulseTargetLight 1.2s infinite alternate;
+}
+
+.board-tile.valid-target::before {
+  content: 'TAP';
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.55rem;
+  font-weight: 900;
+  color: #4f46e5;
+  letter-spacing: 0.5px;
 }
 
 .board-tile.removal-target {
@@ -152,20 +183,20 @@
 }
 
 .board-tile.sequence-winning-tile {
-  border: 2.5px solid #d97706;
-  background: #fffbeb;
-  box-shadow: 0 0 14px rgba(217, 119, 6, 0.6), inset 0 0 8px rgba(245, 158, 11, 0.3);
+  border: 3px solid #d69e2e;
+  background: #fffbea;
+  box-shadow: 0 0 16px rgba(214, 158, 46, 0.8), inset 0 0 10px rgba(214, 158, 46, 0.4);
   animation: winningPulse 1.5s infinite alternate;
-  z-index: 6;
+  z-index: 8;
 }
 
 .board-tile.locked-tile .chip {
-  border-color: #f59e0b;
+  border-color: #d69e2e;
 }
 
 @keyframes lastMovePing {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.5; }
+  50% { transform: scale(1.4); opacity: 0.4; }
   100% { transform: scale(1); opacity: 1; }
 }
 
@@ -175,12 +206,12 @@
 }
 
 @keyframes pulseTargetLight {
-  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5); }
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6); }
   100% { box-shadow: 0 0 0 7px rgba(79, 70, 229, 0); }
 }
 
 @keyframes pulseRemovalLight {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
   100% { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
 }
 
