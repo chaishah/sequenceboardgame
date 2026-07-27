@@ -1,5 +1,5 @@
 /**
- * Sequence Board Game Main Entry Point (Phase 2 Enhanced)
+ * Sequence Board Game Main Entry Point (Focus View & Exact Image Board)
  */
 
 import './styles/main.css';
@@ -50,7 +50,6 @@ class SequenceApp {
     appEl.innerHTML = `
       <header id="status-header"></header>
       <main class="main-game-container">
-        <div id="action-log-container"></div>
         <div id="board-container" class="board-container"></div>
         <div id="hand-container" class="hand-container"></div>
       </main>
@@ -58,10 +57,6 @@ class SequenceApp {
   }
 
   initRenderers() {
-    this.actionLogRenderer = new ActionLogRenderer(
-      document.getElementById('action-log-container')
-    );
-
     this.boardRenderer = new BoardRenderer(
       document.getElementById('board-container'),
       (r, c) => this.handleTileClick(r, c),
@@ -79,19 +74,19 @@ class SequenceApp {
     this.statusRenderer = new StatusRenderer(
       document.getElementById('status-header'),
       {
-        onNewGame: () => this.modalManager.showNewGameModal({
-          gameMode: this.engine.gameMode,
-          aiDifficulty: this.engine.aiDifficulty,
-          numPlayers: this.engine.numPlayers
-        }),
-        onToggleRules: () => this.modalManager.showRulesModal(),
-        onViewStats: () => this.modalManager.showStatsModal(),
-        onToggleSound: () => {
-          sounds.toggleSound();
-          this.render();
-        },
-        onViewDiscard: () => {
-          this.modalManager.showDiscardPileModal(this.engine.deck.discardPile);
+        onOpenMenu: () => {
+          const state = this.engine.getState();
+          this.modalManager.showMenuModal(
+            state,
+            sounds.enabled,
+            {
+              onToggleSound: () => {
+                const enabled = sounds.toggleSound();
+                this.render();
+                return enabled;
+              }
+            }
+          );
         }
       }
     );
@@ -100,7 +95,6 @@ class SequenceApp {
       onStartNewGame: (config) => {
         this.localPlayerId = 1;
         this.net.cleanup();
-        this.actionLogRenderer.clear();
         this.engine.startNewGame(config);
       },
       onHostRoom: (config) => this.handleHostRoom(config),
@@ -204,7 +198,6 @@ class SequenceApp {
   async handleHostRoom(config = {}) {
     try {
       this.localPlayerId = 1;
-      this.actionLogRenderer.clear();
       this.engine.startNewGame({
         numPlayers: 2,
         gameMode: 'online',
@@ -221,7 +214,6 @@ class SequenceApp {
   async handleJoinRoom(code, config = {}) {
     try {
       this.localPlayerId = 2;
-      this.actionLogRenderer.clear();
       await this.net.joinRoom(code);
       alert(`Connected to Room ${code}! You are Player 2.`);
     } catch (err) {
@@ -230,10 +222,6 @@ class SequenceApp {
   }
 
   onEngineStateChange(state) {
-    if (state.lastMove) {
-      this.actionLogRenderer.addLog(state.lastMove);
-    }
-
     this.render();
 
     if (state.winner) {
@@ -250,7 +238,6 @@ class SequenceApp {
       return;
     }
 
-    // AI Bot turn execution
     if (state.gameMode === 'ai' && state.currentPlayer.isAI) {
       setTimeout(() => {
         const move = SequenceAI.getBestMove(this.engine, state.aiDifficulty);

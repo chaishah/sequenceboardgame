@@ -1,8 +1,9 @@
 /**
- * Sequence Board Renderer Module (Fancy Court Cards & Visual Illustrations)
+ * Sequence Board Renderer Module (Unified Visual Card Component & 45% Translucent Chips)
  */
 
 import { BOARD_LAYOUT, parseCard } from '../game/constants.js';
+import { createCardFaceHTML } from './cardComponent.js';
 
 export class BoardRenderer {
   constructor(containerElement, onTileClick, onTileHover) {
@@ -13,16 +14,6 @@ export class BoardRenderer {
     this.initBoard();
   }
 
-  getRankIcon(rank) {
-    switch (rank) {
-      case 'K': return '👑'; // King Crown
-      case 'Q': return '👸'; // Queen Tiara
-      case 'J': return '🗡️'; // Jack Sword/Knight
-      case 'A': return '⚜️'; // Ace Crest
-      default: return null;
-    }
-  }
-
   initBoard() {
     this.container.innerHTML = '';
     const gridEl = document.createElement('div');
@@ -31,7 +22,7 @@ export class BoardRenderer {
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         const tileEl = document.createElement('div');
-        tileEl.className = 'board-tile';
+        tileEl.className = 'board-tile playing-card';
         tileEl.dataset.r = r;
         tileEl.dataset.c = c;
 
@@ -39,30 +30,13 @@ export class BoardRenderer {
 
         if (cardCode === 'WILD') {
           tileEl.classList.add('corner-wild');
-          tileEl.innerHTML = `
-            <div class="corner-star">★</div>
-            <div class="corner-label">FREE</div>
-          `;
+          tileEl.innerHTML = createCardFaceHTML('WILD', { isBoardTile: true });
         } else {
           const parsed = parseCard(cardCode);
           tileEl.classList.add(`suit-${parsed.suit}`, `color-${parsed.color}`);
-          if (['K', 'Q', 'J', 'A'].includes(parsed.rank)) {
-            tileEl.classList.add('court-card-tile');
-          }
-
-          const rankIcon = this.getRankIcon(parsed.rank);
-          const rankDisplay = rankIcon
-            ? `<div class="court-rank-box"><span class="tile-rank">${parsed.rank}</span><span class="court-icon">${rankIcon}</span></div>`
-            : `<div class="tile-rank">${parsed.rank}</div>`;
-
-          const centerArt = rankIcon
-            ? `<div class="tile-center-art"><span class="court-center-icon">${rankIcon}</span><span class="court-center-suit">${parsed.suitSymbol}</span></div>`
-            : `<div class="tile-suit">${parsed.suitSymbol}</div>`;
 
           tileEl.innerHTML = `
-            ${rankDisplay}
-            ${centerArt}
-            <div class="tile-watermark">${parsed.suitSymbol}</div>
+            ${createCardFaceHTML(cardCode, { isBoardTile: true })}
             <div class="chip-container"></div>
             <div class="last-move-marker"></div>
           `;
@@ -91,7 +65,6 @@ export class BoardRenderer {
   render(state) {
     const { grid, validTargets, winningSequences, lockedCells, lastMove } = state;
 
-    // Reset highlights & chips
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
         const tileEl = this.tileElements[r][c];
@@ -113,7 +86,6 @@ export class BoardRenderer {
       }
     }
 
-    // Highlight Last Move
     if (lastMove && lastMove.target) {
       const lastTile = this.tileElements[lastMove.target.r][lastMove.target.c];
       if (lastTile) {
@@ -121,7 +93,6 @@ export class BoardRenderer {
       }
     }
 
-    // Highlight Valid Targets
     if (validTargets && validTargets.length > 0) {
       validTargets.forEach(t => {
         const tileEl = this.tileElements[t.r][t.c];
@@ -135,7 +106,6 @@ export class BoardRenderer {
       });
     }
 
-    // Highlight Winning Sequences
     if (winningSequences && winningSequences.length > 0) {
       winningSequences.forEach(seq => {
         seq.line.forEach(cell => {
@@ -147,7 +117,6 @@ export class BoardRenderer {
       });
     }
 
-    // Highlight Locked Tiles
     if (lockedCells && lockedCells.length > 0) {
       lockedCells.forEach(cellStr => {
         const [r, c] = cellStr.split(',').map(Number);

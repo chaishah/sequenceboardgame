@@ -1,8 +1,9 @@
 /**
- * Player Hand Cards Renderer (Visual King, Queen, Jack & Ace Illustrations)
+ * Player Hand Cards Renderer (Unified Visual Card Component & Touch Manipulation Fix)
  */
 
 import { parseCard } from '../game/constants.js';
+import { createCardFaceHTML } from './cardComponent.js';
 
 export class HandRenderer {
   constructor(containerElement, onCardSelect, onDiscardDeadCard, isCardDeadCheck, onSortHand) {
@@ -16,16 +17,6 @@ export class HandRenderer {
 
   setHoveredCard(cardCode) {
     this.hoveredCardCode = cardCode;
-  }
-
-  getRankIcon(rank) {
-    switch (rank) {
-      case 'K': return '👑'; // King Crown
-      case 'Q': return '👸'; // Queen Tiara
-      case 'J': return '🗡️'; // Jack Sword/Knight
-      case 'A': return '⚜️'; // Ace Crest
-      default: return null;
-    }
   }
 
   render(state, localPlayerId = 1) {
@@ -54,7 +45,8 @@ export class HandRenderer {
       </div>
     `;
 
-    headerEl.querySelector('.btn-sort-hand').addEventListener('click', () => {
+    headerEl.querySelector('.btn-sort-hand').addEventListener('click', (e) => {
+      e.stopPropagation();
       this.onSortHand();
     });
 
@@ -74,36 +66,7 @@ export class HandRenderer {
       if (parsed.isJack) cardEl.classList.add('jack-card');
       if (isHoverMatch) cardEl.classList.add('hover-match');
 
-      const rankIcon = this.getRankIcon(parsed.rank);
-
-      let badgeHtml = '';
-      if (parsed.isTwoEyed) {
-        badgeHtml = `<div class="card-badge wild-badge">WILD ★</div>`;
-      } else if (parsed.isOneEyed) {
-        badgeHtml = `<div class="card-badge remove-badge">REMOVE ✖</div>`;
-      } else if (isDead) {
-        badgeHtml = `<div class="card-badge dead-badge">DEAD ☠</div>`;
-      }
-
-      const centerArtHtml = rankIcon
-        ? `<div class="card-center-illustration">
-             <span class="center-rank-icon">${rankIcon}</span>
-             <span class="center-suit-symbol">${parsed.suitSymbol}</span>
-           </div>`
-        : `<div class="card-center-suit">${parsed.suitSymbol}</div>`;
-
-      cardEl.innerHTML = `
-        <div class="card-corner top-left">
-          <span class="card-rank">${parsed.rank}</span>
-          <span class="card-suit">${parsed.suitSymbol}</span>
-        </div>
-        ${badgeHtml}
-        ${centerArtHtml}
-        <div class="card-corner bottom-right">
-          <span class="card-rank">${parsed.rank}</span>
-          <span class="card-suit">${parsed.suitSymbol}</span>
-        </div>
-      `;
+      cardEl.innerHTML = createCardFaceHTML(cardCode, { isBoardTile: false });
 
       if (isDead && isLocalTurn) {
         const swapBtn = document.createElement('button');
@@ -116,7 +79,8 @@ export class HandRenderer {
         cardEl.appendChild(swapBtn);
       }
 
-      cardEl.addEventListener('click', () => {
+      cardEl.addEventListener('click', (e) => {
+        e.preventDefault();
         if (isLocalTurn && !curPlayer.isAI) {
           this.onCardSelect(idx);
         }

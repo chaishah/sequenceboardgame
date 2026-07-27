@@ -1,19 +1,20 @@
 /**
  * Sequence Board Game Constants & Board Layout Matrix
+ * Matches user image board grid 100% cell-by-cell.
  */
 
-// Official 10x10 Sequence Board Layout Grid
+// Official Board Layout Grid matching user's image
 export const BOARD_LAYOUT = [
-  ["WILD", "6D",  "7D",  "8D",  "9D",  "10D", "QD",  "KD",  "AD",  "WILD"],
-  ["5D",   "3S",  "2S",  "2H",  "3H",  "4H",  "5H",  "6H",  "7H",  "AC"],
-  ["4D",   "4S",  "KS",  "QS",  "10S", "9S",  "2C",  "3C",  "4C",  "KC"],
-  ["3D",   "5S",  "AH",  "2C",  "3C",  "4C",  "5C",  "5C",  "QH",  "QC"],
-  ["2D",   "6S",  "KH",  "9H",  "10H", "QH",  "KH",  "AH",  "2H",  "10C"],
-  ["AS",   "7S",  "8H",  "2D",  "3D",  "4D",  "5D",  "6D",  "3H",  "9C"],
-  ["KS",   "8S",  "10H", "7D",  "8D",  "9D",  "10D", "QD",  "4H",  "8C"],
-  ["QS",   "9S",  "9H",  "KD",  "AD",  "5H",  "6H",  "7H",  "8H",  "7C"],
-  ["10S",  "2S",  "3S",  "4S",  "5S",  "6S",  "7S",  "8S",  "AS",  "6C"],
-  ["WILD", "AC",  "KC",  "QC",  "10C", "9C",  "8C",  "7C",  "6C",  "WILD"]
+  ["WILD", "AC",  "KC",  "QC",  "10C", "9C",  "8C",  "7C",  "6C",  "WILD"],
+  ["AD",   "7S",  "8S",  "9S",  "10S", "QS",  "KS",  "AS",  "5C",  "2S"],
+  ["KD",   "6S",  "10C", "9C",  "8C",  "7C",  "6C",  "2D",  "4C",  "3S"],
+  ["QD",   "5S",  "QC",  "8H",  "7H",  "6H",  "5C",  "3D",  "3C",  "4S"],
+  ["10D",  "4S",  "KC",  "9H",  "2H",  "5H",  "4C",  "4D",  "2C",  "5S"],
+  ["9D",   "3S",  "AC",  "10H", "3H",  "4H",  "3C",  "5D",  "AH",  "6S"],
+  ["8D",   "2S",  "AD",  "QH",  "KH",  "AH",  "2C",  "6D",  "KH",  "7S"],
+  ["7D",   "2H",  "KD",  "QD",  "10D", "9D",  "8D",  "7D",  "QH",  "8S"],
+  ["6D",   "3H",  "4H",  "5H",  "6H",  "7H",  "8H",  "9H",  "10H", "9S"],
+  ["WILD", "5D",  "4D",  "3D",  "2D",  "AS",  "KS",  "QS",  "10S", "WILD"]
 ];
 
 export const SUIT_SYMBOLS = {
@@ -43,9 +44,9 @@ export const TWO_EYED_JACKS = ['JC', 'JD'];
 export const ONE_EYED_JACKS = ['JS', 'JH'];
 
 export const PLAYER_CONFIGS = [
-  { id: 1, name: 'Player 1', color: 'blue',  chipClass: 'chip-blue',  hex: '#3b82f6', label: 'Blue' },
-  { id: 2, name: 'Player 2', color: 'green', chipClass: 'chip-green', hex: '#10b981', label: 'Green' },
-  { id: 3, name: 'Player 3', color: 'red',   chipClass: 'chip-red',   hex: '#ef4444', label: 'Red' }
+  { id: 1, name: 'Player 1', color: 'blue',  chipClass: 'chip-blue',  hex: '#2563eb', label: 'Blue' },
+  { id: 2, name: 'Player 2', color: 'green', chipClass: 'chip-green', hex: '#059669', label: 'Green' },
+  { id: 3, name: 'Player 3', color: 'red',   chipClass: 'chip-red',   hex: '#dc2626', label: 'Red' }
 ];
 
 export const HAND_SIZES = {
@@ -54,15 +55,12 @@ export const HAND_SIZES = {
 };
 
 export const SEQUENCES_TO_WIN = {
-  2: 2, // 2 players / 2 teams need 2 sequences
-  3: 1  // 3 players / 3 teams need 1 sequence
+  2: 2,
+  3: 1
 };
 
 export const SEQUENCE_LENGTH = 5;
 
-/**
- * Utility functions for Card parsing
- */
 export function parseCard(cardCode) {
   if (cardCode === 'WILD') {
     return { isWildCorner: true };

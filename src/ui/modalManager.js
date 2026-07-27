@@ -1,5 +1,5 @@
 /**
- * Modal Dialogs Manager (Phase 2 Enhanced)
+ * Modal Dialogs Manager (In-Game Focus Menu & White Theme)
  */
 
 import QRCode from 'qrcode';
@@ -22,6 +22,56 @@ export class ModalManager {
     this.activeModal = null;
   }
 
+  showMenuModal(state, isSoundEnabled, soundHandlers) {
+    this.closeModal();
+
+    const modalEl = document.createElement('div');
+    modalEl.id = 'active-seq-modal';
+    modalEl.className = 'modal-backdrop';
+
+    modalEl.innerHTML = `
+      <div class="modal-card menu-modal-card">
+        <div class="modal-header">
+          <h2>⚙️ Game Options & Menu</h2>
+          <button class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body menu-modal-body">
+          <button class="btn-primary btn-block mb-10" id="menu-btn-new">⚙️ New Game Setup</button>
+          <button class="btn-secondary btn-block mb-10" id="menu-btn-rules">📖 How to Play (Rules)</button>
+          <button class="btn-secondary btn-block mb-10" id="menu-btn-stats">🏆 Match Statistics</button>
+          <button class="btn-secondary btn-block mb-10" id="menu-btn-discard">🗑️ View Discard Pile (${state.discardPileCount})</button>
+          <button class="btn-secondary btn-block mb-10" id="menu-btn-sound">
+            ${isSoundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalEl);
+    modalEl.querySelector('.modal-close-btn').addEventListener('click', () => this.closeModal());
+
+    modalEl.querySelector('#menu-btn-new').addEventListener('click', () => {
+      this.showNewGameModal();
+    });
+
+    modalEl.querySelector('#menu-btn-rules').addEventListener('click', () => {
+      this.showRulesModal();
+    });
+
+    modalEl.querySelector('#menu-btn-stats').addEventListener('click', () => {
+      this.showStatsModal();
+    });
+
+    modalEl.querySelector('#menu-btn-discard').addEventListener('click', () => {
+      this.showDiscardPileModal(state.discardPile || []);
+    });
+
+    modalEl.querySelector('#menu-btn-sound').addEventListener('click', (e) => {
+      const enabled = soundHandlers.onToggleSound();
+      e.target.innerText = enabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    });
+  }
+
   showNewGameModal(currentConfig = {}) {
     this.closeModal();
 
@@ -36,7 +86,6 @@ export class ModalManager {
           <button class="modal-close-btn">&times;</button>
         </div>
         <div class="modal-body">
-          <!-- Avatar & Name Selector -->
           <div class="form-group avatar-picker-group">
             <label>Choose Your Avatar & Name:</label>
             <div class="name-avatar-row">
@@ -99,7 +148,6 @@ export class ModalManager {
 
     document.body.appendChild(modalEl);
 
-    // Avatar selection
     const avatarBtns = modalEl.querySelectorAll('#avatar-grid .avatar-btn');
     avatarBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -109,7 +157,6 @@ export class ModalManager {
       });
     });
 
-    // Tab switching
     const tabs = modalEl.querySelectorAll('.tab-btn');
     const aiContent = modalEl.querySelector('#tab-ai-content');
     const onlineContent = modalEl.querySelector('#tab-online-content');
