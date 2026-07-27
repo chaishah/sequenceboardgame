@@ -1,5 +1,5 @@
 /**
- * Sequence Board Renderer Module (Unified Visual Card Component & 45% Translucent Chips)
+ * Sequence Board Renderer Module (Emoji-Free & Translucent Chips)
  */
 
 import { BOARD_LAYOUT, parseCard } from '../game/constants.js';
@@ -42,7 +42,8 @@ export class BoardRenderer {
           `;
         }
 
-        tileEl.addEventListener('click', () => {
+        tileEl.addEventListener('click', (e) => {
+          e.preventDefault();
           this.onTileClick(r, c);
         });
 
