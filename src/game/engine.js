@@ -15,7 +15,7 @@ export class GameEngine {
     this.numPlayers = 2;
     this.currentTurnIndex = 0;
     this.selectedCardIndex = null;
-    this.gameMode = 'ai'; // 'ai' or 'online'
+    this.gameMode = 'ai'; // 'ai', 'local' (pass & play), or 'online'
     this.aiDifficulty = 'medium'; // 'easy', 'medium', 'hard'
     this.winner = null;
     this.winningSequences = [];
@@ -38,7 +38,7 @@ export class GameEngine {
   /**
    * Initializes a fresh new game
    */
-  startNewGame({ numPlayers = 2, gameMode = 'ai', aiDifficulty = 'medium', localPlayerId = 1, playerName = 'Player 1', playerAvatar = '🦊' } = {}) {
+  startNewGame({ numPlayers = 2, gameMode = 'ai', aiDifficulty = 'medium', localPlayerId = 1, playerName = 'Player 1', playerAvatar = '🦊', player2Name = 'Player 2', player2Avatar = '👤' } = {}) {
     this.numPlayers = numPlayers;
     this.gameMode = gameMode;
     this.aiDifficulty = aiDifficulty;
@@ -66,10 +66,23 @@ export class GameEngine {
         if (drawn) hand.push(drawn);
       }
 
+      let pName = cfg.name;
+      let pAvatar = '👤';
+      if (i === 0) {
+        pName = playerName;
+        pAvatar = playerAvatar;
+      } else if (i === 1 && gameMode === 'local') {
+        pName = player2Name;
+        pAvatar = player2Avatar;
+      } else if (isAI) {
+        pName = `Bot (${aiDifficulty.toUpperCase()})`;
+        pAvatar = '🤖';
+      }
+
       this.players.push({
         id: cfg.id,
-        name: isAI ? `Bot (${aiDifficulty.toUpperCase()})` : (i === 0 ? playerName : cfg.name),
-        avatar: isAI ? '🤖' : (i === 0 ? playerAvatar : '👤'),
+        name: pName,
+        avatar: pAvatar,
         color: cfg.color,
         chipClass: cfg.chipClass,
         hex: cfg.hex,

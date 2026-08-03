@@ -1,5 +1,5 @@
 /**
- * Modal Dialogs Manager (In-Game Focus Menu & White Theme)
+ * Modal Dialogs Manager (In-Game Focus Menu, Pass & Play 2-Player & White Theme)
  */
 
 import QRCode from 'qrcode';
@@ -87,22 +87,24 @@ export class ModalManager {
         </div>
         <div class="modal-body">
           <div class="form-group avatar-picker-group">
-            <label>Choose Your Avatar & Name:</label>
+            <label>Player 1 Avatar & Name:</label>
             <div class="name-avatar-row">
               <div class="avatar-grid" id="avatar-grid">
                 ${AVATARS.map(a => `
                   <button class="avatar-btn ${a === this.selectedAvatar ? 'active' : ''}" data-avatar="${a}">${a}</button>
                 `).join('')}
               </div>
-              <input type="text" id="input-player-name" value="Player 1" maxlength="12" placeholder="Your Name" />
+              <input type="text" id="input-player-name" value="Player 1" maxlength="12" placeholder="Player 1 Name" />
             </div>
           </div>
 
           <div class="mode-tabs">
-            <button class="tab-btn active" data-tab="ai">🤖 vs AI Bot (Single Player)</button>
-            <button class="tab-btn" data-tab="online">📱 Multi-Device Online (P2P)</button>
+            <button class="tab-btn active" data-tab="ai">🤖 vs AI Bot</button>
+            <button class="tab-btn" data-tab="local">👥 2 Players (Pass & Play)</button>
+            <button class="tab-btn" data-tab="online">📱 Multi-Device Online</button>
           </div>
 
+          <!-- TAB 1: vs AI Bot -->
           <div class="tab-content" id="tab-ai-content">
             <div class="form-group">
               <label>AI Difficulty:</label>
@@ -124,6 +126,17 @@ export class ModalManager {
             <button class="btn-primary btn-block" id="btn-start-ai">Start Playing vs AI 🎮</button>
           </div>
 
+          <!-- TAB 2: 2 Players Pass & Play -->
+          <div class="tab-content hidden" id="tab-local-content">
+            <div class="form-group">
+              <label>Player 2 Name:</label>
+              <input type="text" id="input-player2-name" value="Player 2" maxlength="12" placeholder="Player 2 Name" class="full-input" />
+            </div>
+            <p class="section-desc">Pass the phone/tablet back and forth between turns!</p>
+            <button class="btn-primary btn-block" id="btn-start-local">Start 2-Player Pass & Play 👥</button>
+          </div>
+
+          <!-- TAB 3: Multi-Device Online -->
           <div class="tab-content hidden" id="tab-online-content">
             <div class="online-section">
               <h3>Create a New Room</h3>
@@ -159,17 +172,22 @@ export class ModalManager {
 
     const tabs = modalEl.querySelectorAll('.tab-btn');
     const aiContent = modalEl.querySelector('#tab-ai-content');
+    const localContent = modalEl.querySelector('#tab-local-content');
     const onlineContent = modalEl.querySelector('#tab-online-content');
 
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
+        aiContent.classList.add('hidden');
+        localContent.classList.add('hidden');
+        onlineContent.classList.add('hidden');
+
         if (tab.dataset.tab === 'ai') {
           aiContent.classList.remove('hidden');
-          onlineContent.classList.add('hidden');
+        } else if (tab.dataset.tab === 'local') {
+          localContent.classList.remove('hidden');
         } else {
-          aiContent.classList.add('hidden');
           onlineContent.classList.remove('hidden');
         }
       });
@@ -191,6 +209,20 @@ export class ModalManager {
         aiDifficulty: diff,
         playerName: name,
         playerAvatar: this.selectedAvatar
+      });
+    });
+
+    modalEl.querySelector('#btn-start-local').addEventListener('click', () => {
+      const p1Name = modalEl.querySelector('#input-player-name').value.trim() || 'Player 1';
+      const p2Name = modalEl.querySelector('#input-player2-name').value.trim() || 'Player 2';
+      this.closeModal();
+      this.handlers.onStartNewGame({
+        numPlayers: 2,
+        gameMode: 'local',
+        playerName: p1Name,
+        playerAvatar: this.selectedAvatar,
+        player2Name: p2Name,
+        player2Avatar: '👤'
       });
     });
 

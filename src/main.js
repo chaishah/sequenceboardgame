@@ -1,5 +1,5 @@
 /**
- * Sequence Board Game Main Entry Point (Focus View & Exact Image Board)
+ * Sequence Board Game Main Entry Point (Focus View & Pass & Play Fix)
  */
 
 import './styles/main.css';
@@ -129,11 +129,21 @@ class SequenceApp {
     };
   }
 
+  getActiveLocalPlayerId() {
+    const state = this.engine.getState();
+    if (state.gameMode === 'local') {
+      return state.currentPlayer ? state.currentPlayer.id : 1;
+    }
+    return this.localPlayerId;
+  }
+
   handleTileClick(r, c) {
     const state = this.engine.getState();
     if (state.winner) return;
 
-    if (state.currentPlayer.id !== this.localPlayerId) return;
+    const activeLocalId = this.getActiveLocalPlayerId();
+
+    if (state.currentPlayer.id !== activeLocalId) return;
     if (state.selectedCardIndex === null) return;
 
     const validTargets = state.validTargets || [];
@@ -263,8 +273,10 @@ class SequenceApp {
 
   render() {
     const state = this.engine.getState();
+    const activeLocalId = this.getActiveLocalPlayerId();
+
     this.boardRenderer.render(state);
-    this.handRenderer.render(state, this.localPlayerId);
+    this.handRenderer.render(state, activeLocalId);
     this.statusRenderer.render(state, sounds.enabled);
   }
 }
