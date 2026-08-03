@@ -63,8 +63,8 @@ export class BoardRenderer {
     this.container.appendChild(gridEl);
   }
 
-  render(state) {
-    const { grid, validTargets, winningSequences, lockedCells, lastMove } = state;
+  render(state, localPlayerId = 1) {
+    const { grid, validTargets, winningSequences, lockedCells, lastMove, currentPlayer } = state;
 
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
@@ -94,7 +94,9 @@ export class BoardRenderer {
       }
     }
 
-    if (validTargets && validTargets.length > 0) {
+    // Target Highlights are ONLY shown on the local player's screen when it is currently their turn!
+    const isLocalTurn = currentPlayer && currentPlayer.id === localPlayerId;
+    if (isLocalTurn && validTargets && validTargets.length > 0) {
       validTargets.forEach(t => {
         const tileEl = this.tileElements[t.r][t.c];
         if (tileEl) {

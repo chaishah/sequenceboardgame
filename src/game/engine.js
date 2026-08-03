@@ -1,5 +1,5 @@
 /**
- * Sequence Board Game Core Engine & State Manager (Phase 2 Enhanced)
+ * Sequence Board Game Core Engine & State Manager (Multiplayer P2P Sync Fix)
  */
 
 import { BOARD_LAYOUT, PLAYER_CONFIGS, HAND_SIZES, SEQUENCES_TO_WIN, parseCard } from './constants.js';
@@ -15,7 +15,7 @@ export class GameEngine {
     this.numPlayers = 2;
     this.currentTurnIndex = 0;
     this.selectedCardIndex = null;
-    this.gameMode = 'ai'; // 'ai', 'local' (pass & play), or 'online'
+    this.gameMode = 'ai'; // 'ai', 'local', or 'online'
     this.aiDifficulty = 'medium'; // 'easy', 'medium', 'hard'
     this.winner = null;
     this.winningSequences = [];
@@ -362,11 +362,14 @@ export class GameEngine {
     this.players = fullState.players;
     this.numPlayers = fullState.numPlayers;
     this.currentTurnIndex = fullState.currentTurnIndex;
+    this.selectedCardIndex = fullState.selectedCardIndex !== undefined ? fullState.selectedCardIndex : null;
     this.gameMode = fullState.gameMode;
     this.aiDifficulty = fullState.aiDifficulty;
     this.winner = fullState.winner;
     this.lastMove = fullState.lastMove;
-    this.deck.setState(fullState.deckCards || [], fullState.deckDiscard || []);
+    if (fullState.deckCards || fullState.deckDiscard) {
+      this.deck.setState(fullState.deckCards || [], fullState.deckDiscard || []);
+    }
     this.updateSequencesAndLocks();
     this.notifyStateChange();
   }

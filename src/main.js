@@ -1,5 +1,5 @@
 /**
- * Sequence Board Game Main Entry Point (Focus View & Pass & Play Fix)
+ * Sequence Board Game Main Entry Point (Multi-Device P2P Fix)
  */
 
 import './styles/main.css';
@@ -275,7 +275,7 @@ class SequenceApp {
     const state = this.engine.getState();
     const activeLocalId = this.getActiveLocalPlayerId();
 
-    this.boardRenderer.render(state);
+    this.boardRenderer.render(state, activeLocalId);
     this.handRenderer.render(state, activeLocalId);
     this.statusRenderer.render(state, sounds.enabled);
   }
